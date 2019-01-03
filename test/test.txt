@@ -1,0 +1,13 @@
+*** Settings ***
+Library           RequestsLibrary
+Library           Collections
+Library           json
+
+*** Test Cases ***
+test1
+    ${msg}    set variable     { "firstName":"Eddy" , "lastName":"Peng" }
+    log    ${msg}
+     #json字符串转换为dictionary
+    ${json_a}    json.loads    ${msg}
+    ${a}    get from dictionary    ${json_a}    firstName
+    log    ${a}

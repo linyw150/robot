@@ -1,0 +1,61 @@
+*** Settings ***
+Library           Selenium2Library
+Library           Screenshot
+
+*** Test Cases ***
+case1
+    ${url}    set variable    http://115.29.142.212:8020
+    ${resp}    set variable    /mobile/user/login
+    Should Be Equal As Integers    ${resp.status_code}    200
+    log    ${resp.content}
+
+Set variable
+    ${a}    Set Variable    1234
+    log    ${a}
+
+Catenate
+    ${hi}    Catenate    hello    world
+    log    ${hi}
+
+SEPARATOR
+    ${hi}    Catenate    SEPARATOR=+++++    hello    world
+    log    ${hi}
+
+Create List
+    ${abc}    create list    a    b    c
+    log    ${abc}
+
+get time
+    ${t}    get time    hello world
+    log    ${t}
+
+run keyword if
+    ${a}    set variable    59
+    run keyword if    ${a}>=90    log    优秀    ELSE if    ${a}>=70    log
+    ...    良好    ELSE if    ${a}>=60    log    不及格
+    ...    ELSE    log    不及格
+
+for
+    : FOR    ${i}    IN RANGE    10
+    \    log    ${i}
+
+for2
+    @{abc}    create list    a    b    c
+    :FOR    ${i}    IN    @{abc}
+    \    log    ${i}
+
+evaluate
+    ${d}    evaluate    random.randint(1000,9999)    random
+    log    ${d}
+
+comment
+    comment    这是一条注释
+
+screenshot
+    Library    Selenium2Library
+    Library    Screenshot
+
+collections
+    ${dict}    create Dictionary    a    1    b    2
+    ${items}    Get Dictionary Keys    ${dict}
+    log    ${items}

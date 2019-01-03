@@ -1,0 +1,118 @@
+*** Settings ***
+Library           requests
+Library           RequestsLibrary
+Library           Collections
+Library           json
+Library           MyHandleBuildData
+
+*** Test Cases ***
+loginSys_post
+    ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
+    ${dict}    Create Dictionary    areaCode=86    account=13480251015    passwd=jy452aXMu/ULyEZzKVWspIXK5DdGP32yJvhcxiezPmV/mNnU14ZH+6tmPS/aXmq9F2nxNTHxRYh5tYN5B9wLSL8YdQNGjgaztDNEeIKvFhQ+ksenzrKRFO3F7kOsJRZMCchkTVEp4y3LJv26d0psbO4mmOp4icN1Nb7dcO/OCDVY3TFlCp5nYQ4guPVxEPV4JdA9V9+P/sFrUvfyCgV1Y6DaWpm76sq2Kl76zRrayf/J1hU/wn9MC+IG1Ku74CJewLHUL6+Uk/erLyCibDHKNpsS/F5IcQfO3nRw+83qkikFNJlIzmPbuKU5dDwIDc9rvn1bncr6s9I5Ulahev+m/Q==
+    create session    api    http://115.29.142.212:8020    ${header}
+    ${addr}    post request    api    /mobile/user/login    data=${dict}
+    log    ---开始断言验证---
+    Should Be Equal As Strings    ${addr.status_code}    200
+    ${responseData}    json.loads    ${addr.content}
+    #    ${token}    get from dictionary    ${responseData}    data
+    #token
+    ${token}    Set Variable    ${responseData['data']['token']}
+    Set Global Variable    ${token}
+    #用户id
+    ${user_id}    Set Variable    ${responseData['data']['id']}
+    Set Global Variable    ${user_id}
+
+getCommunity_post
+    ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
+    ${dict}    Create Dictionary    id=${user_id}    token=${token}
+    create session    api    http://115.29.142.212:8020    ${header}
+    ${addr}    post request    api    /Mobile/Community/getCommunitiesWithAuthority    data=${dict}
+    log    ${addr.content}
+    ${responseData}    json.loads    ${addr.content}
+    Should Be Equal As Strings    ${addr.status_code}    200
+
+getBFCInfo_post
+    ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
+    ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641
+    create session    api    http://115.29.142.212:8020    ${header}
+    ${addr}    post request    api    /Mobile/Room/getBFR    data=${dict}
+    ${responseData}    json.loads    ${addr.content}
+    Should Be Equal As Strings    ${addr.status_code}    200
+
+testAddBuilding_post
+    ${num}    set variable    1
+    ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
+    create session    api    http://115.29.142.212:8020    ${header}
+    :FOR    ${var}    IN    @{num}
+    \    ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641    name=楼栋4
+    \    ...    num=${var}    contact=contact    areaCode=86    phone=18822223333    desc=hhhhh
+    \    ${addr}    post request    api    /Mobile/Room/addBuilding    data=${dict}
+    \    log    ${addr.content}
+    \    ${responseData}    json.loads    ${addr.content}
+    \    log    ${addr.status_code}
+    \    Run keyword if    ${addr.status_code}==200    exit for loop
+    \    log    ${var}
+
+testAddBuilding_post2
+    ${num}    set variable    1    2    3    4
+    ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
+    create session    api    http://115.29.142.212:8020    ${header}
+    :FOR    ${var}    IN RANGE    6
+    \    ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641    name=楼栋4
+    \    ...    num=${var}    contact=contact    areaCode=86    phone=18822223333    desc=hhhhh
+    \    ${addr}    post request    api    /Mobile/Room/addBuilding    data=${dict}
+    \    log    ${addr.content}
+    \    ${responseData}    json.loads    ${addr.content}
+    \    log    ${addr.status_code}
+    \    ${build_id}    Run keyword if    ${addr.status_code}==200    set variable    ${responseData['data']['id']}
+    \    Set Global Variable    ${build_id}
+    \    exit for loop if     ${addr.status_code}==200
+    ${EMPTY}
+
+testAddFloor_post
+    ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
+    create session    api    http://115.29.142.212:8020    ${header}
+    ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641    buildingId=${build_id}    floors=[{"desc":"","name":"1","num":"001"}]
+    ${addr}    post request    api    /Mobile/Room/addFloors    data=${dict}
+    log    ${addr.content}
+    ${responseData}    json.loads    ${addr.content}
+    log    ${addr.status_code}
+    ${floor_id}    Run keyword if    ${addr.status_code}==200    set variable    ${responseData['data']['id']}
+    Set Global Variable    ${floor_id}
+
+testAddRoom_post
+    ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
+    create session    api    http://115.29.142.212:8020    ${header}
+    ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641    buildingId=${build_id}    floorId=${floor_id}
+    ...    rooms=[{"locktype":6,"name":"1","no":"001","num":"001"}]
+    ${addr}    post request    api    /Mobile/Room/addRooms    data=${dict}
+    log    ${addr.content}
+    ${responseData}    json.loads    ${addr.content}
+    log    ${addr.status_code}
+    ${roomr_id}    Run keyword if    ${addr.status_code}==200    set variable    ${responseData['data']['id']}
+    Set Global Variable    ${roomr_id}
+
+addBuilding_post
+    ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
+    ${num}    set variable    1
+    ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641    name=楼栋4    num=${num}
+    ...    contact=contact    areaCode=86    phone=18822223333    desc=hhhhh
+    create session    api    http://115.29.142.212:8020    ${header}
+    ${addr}    post request    api    /Mobile/Room/addBuilding    data=${dict}
+    log    ${addr.content}
+    if
+    ${responseData}    json.loads    ${addr.content}
+    Should Be Equal As Strings    ${addr.status_code}    200
+    ${a}    handleData    ${addr.content}
+
+json_convert_dict
+    ${msg}    set variable    {'a':'1','b':'2'}
+    log    ${msg}
+    #json字符串转换为dictionary
+    ${msgDic}    Evaluate    demjson.decode(u'${msg}')    demjson
+    log    $(msgDic}
+
+testFOR
+    ${num}    set variable    1    2    3    4
+    : FOR    ${var}    IN    @{num}
+    \    log    ${var}

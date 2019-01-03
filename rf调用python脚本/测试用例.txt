@@ -1,0 +1,7 @@
+*** Settings ***
+Library           MyLibrary
+
+*** Test Cases ***
+rf调用python脚本
+    ${a}    test a b    5    8
+    log    ${a}
