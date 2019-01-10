@@ -39,25 +39,29 @@ getBFCInfo_post
     Should Be Equal As Strings    ${addr.status_code}    200
 
 addFloor_post
+    log    ---添加楼层---
     ${num}    set variable    6
     ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
     create session    api    http://115.29.142.212:8020    ${header}
     : FOR    ${var}    IN RANGE    ${num}
     \    ${floor_name}=    Catenate    楼层    ${var}
     \    ${floor_num}    set variable    ${var}
-    \    ${floor_info}
+    \    ${desc}    set variable    123
+    \    ${floor_info}    Create Dictionary    num=${floor_num}    name=${floor_name}    desc=${desc}
     \    @{list1}    create list
+    \    Append To List    ${list1}     ${floor_info}
+    \    log    ${list1}
     \    ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641    buildingId=${buildingId}
-    \    ...    floors=${floor_info}
+    \    ...    floors=${list1}
     \    ${addr}    post request    api    /Mobile/Room/addFloors    data=${dict}
     \    ${responseData}    json.loads    ${addr.content}
     \    log    ${addr.content}
-    \    ${buildingId}    Run keyword if    ${addr.status_code}==200    set variable    ${responseData['data']['id']}
+    \    ${floorId}    Run keyword if    ${addr.status_code}==200    set variable    ${responseData['data']['id']}
     \    Set Global Variable    ${var}
-    \    Set Global Variable    ${buildingId}
+    \    Set Global Variable    ${floorId}
     \    Run keyword if    ${addr.status_code}==200    exit for loop
 
-editBuilding_post
+editFloor_post
     ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
     create session    api    http://115.29.142.212:8020    ${header}
     ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641    buildingId=${buildingId}    name=${bulid_name}
@@ -67,7 +71,7 @@ editBuilding_post
     ${responseData}    json.loads    ${addr.content}
     Should Be Equal As Strings    ${addr.status_code}    200
 
-deleteBuilding_post
+deleteFloor_post
     ${header}    Create Dictionary    content-type    application/x-www-form-urlencoded
     create session    api    http://115.29.142.212:8020    ${header}
     ${dict}    Create Dictionary    id=${user_id}    token=${token}    communityId=641    buildingId=${buildingId}
